@@ -1,0 +1,13 @@
+<div class="list-wrapper"></div>
+<ul class="notifications-list">
+  <li class="notification-list-item" *ngFor="let notification of (notifications$ | async); index as i">
+    <ng-container
+    [ngTemplateOutlet]="optionNotifTemplate || defaultNotifTemplate"
+    [ngTemplateOutletContext]="{ $implicit: notification, index: i}"
+  >
+  </ng-container>
+  </li>
+</ul>
+
+<ng-template #defaultNotifTemplate let-notification>{{ date | date }} - {{ notification.title }}</ng-template>
+
