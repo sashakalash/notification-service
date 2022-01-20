@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   default: {
-    notificationIntervalValue: 1
+    notificationIntervalValue: 3
   }
 };
 

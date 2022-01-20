@@ -1,32 +1,33 @@
 import { Inject, Injectable } from '@angular/core';
-import { from, Observable, ReplaySubject, timer, interval, of } from 'rxjs';
-import { concatAll, delay, map, switchMap, tap, toArray } from 'rxjs/operators';
+import { from, Observable, ReplaySubject, of, EMPTY } from 'rxjs';
+import { concatAll, delay, endWith, map, switchMap } from 'rxjs/operators';
 import { NOTIFICATIONS_INTERVAL_VALUE } from 'src/app.config';
 import { IterableQueue } from '../models/iterableQueue';
 import { Queue } from '../models/queue';
+
+function* queueIterator(list: IterableQueue<any>) {
+  for (let item of list) {
+    yield item;
+  }
+}
 
 @Injectable()
 export class NotificationService<T> {
   private queue: Queue<T>;
   private queueSubject: ReplaySubject<Queue<T>>;
-  public queueStream$: Observable<IterableQueue<T>>;
+  public notifications$: Observable<any>;
+  private MILLISECONDS_VALUE: number = 1000;
 
-  constructor(@Inject(NOTIFICATIONS_INTERVAL_VALUE) private intervalValue: number = 2) {
+  constructor(@Inject(NOTIFICATIONS_INTERVAL_VALUE) private intervalValue: number) {
     this.queue = new Queue<T>();
     this.queueSubject = new ReplaySubject<Queue<T>>();
-    this.queueStream$ = this.queueSubject.asObservable()
+    this.notifications$ = this.queueSubject.asObservable()
       .pipe(
-        map((q: Queue<T>) => new IterableQueue(q)),
-        tap((v: IterableQueue<T>) => {
-          for (let i of v) {
-            of(i).pipe(delay(intervalValue * 1000)).subscribe(v => console.log(v))
-          }
-          return v;
-        }),
-        // concatAll()
-        // interval(intervalValue)
+        switchMap((q: Queue<T>) => from(queueIterator(new IterableQueue(q)))),
+        map((value: T[]) => of(value).pipe(delay(intervalValue * this.MILLISECONDS_VALUE))),
+        endWith(EMPTY),
+        concatAll(),
       );
-    this.queueStream$.subscribe()
   }
 
   public addToQueue(value: T): void {

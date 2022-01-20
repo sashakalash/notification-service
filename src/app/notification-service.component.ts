@@ -1,20 +1,20 @@
 import { NotificationService } from './core/services/notification.service';
-import { Observable } from 'rxjs';
-import { Component, Input, OnInit, TemplateRef } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
 
-export class Notification {
-  constructor(public title: string) {}
+export interface Notification {
+  title: string
 }
-
 @Component({
   selector: 'notifications-component',
   templateUrl: './notification-service.component.html',
   styleUrls: ['./notification-service.component.scss']
 })
-export class NotificationComponent implements OnInit {
+export class NotificationComponent implements OnInit, OnDestroy {
 
-  @Input() optionNotifTemplate: TemplateRef<any>;
-  @Input() notifications$: Observable<Notification[]>;
+  public notifications$: Observable<Notification>;
+  private destroyed$ = new Subject();
 
   get date() {
     return new Date();
@@ -25,6 +25,12 @@ export class NotificationComponent implements OnInit {
   ngOnInit() {
     let count = 0;
     const int = setInterval(() => this.notifService.addToQueue({ title: `notification - ${++count}` }), 1000);
-    setTimeout(() => clearInterval(int), 3000);
+    setTimeout(() => clearInterval(int), 5000);
+    this.notifications$ = this.notifService.notifications$.pipe(takeUntil(this.destroyed$));
+  }
+
+  ngOnDestroy(): void {
+    this.destroyed$.next();
+    this.destroyed$.complete();
   }
 }
