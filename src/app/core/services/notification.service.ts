@@ -16,9 +16,9 @@ export class NotificationService<T> {
   private queue: Queue<T>;
   private queueSubject: ReplaySubject<Queue<T>>;
   public notifications$: Observable<any>;
-  private MILLISECONDS_VALUE: number = 1000;
+  private readonly MILLISECONDS_VALUE: number = 1000;
 
-  constructor(@Inject(NOTIFICATIONS_INTERVAL_VALUE) private intervalValue: number) {
+  constructor(@Inject(NOTIFICATIONS_INTERVAL_VALUE) private readonly intervalValue: number) {
     this.queue = new Queue<T>();
     this.queueSubject = new ReplaySubject<Queue<T>>();
     this.notifications$ = this.queueSubject.asObservable()
